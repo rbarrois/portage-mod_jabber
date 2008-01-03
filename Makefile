@@ -1,10 +1,10 @@
 NAME = portage-mod_jabber
 VERSION = 0.0.3
 
-snapshot:
+snapshot: clean
 	mkdir /tmp/$(NAME)-$(VERSION)
 	cp * /tmp/$(NAME)-$(VERSION)
-	cd /tmp && tar --exclude=".svn" -jcf $(NAME)-$(VERSION).tar.bz2 $(NAME)-$(VERSION)
+	cd /tmp && tar --exclude=".svn" --exclude="Makefile" -jcf $(NAME)-$(VERSION).tar.bz2 $(NAME)-$(VERSION)
 	mv /tmp/$(NAME)-$(VERSION).tar.bz2 .
 	md5sum $(NAME)-$(VERSION).tar.bz2 > $(NAME)-$(VERSION).md5
 	sha512sum $(NAME)-$(VERSION).tar.bz2 > $(NAME)-$(VERSION).sha512
