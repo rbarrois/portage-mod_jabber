@@ -1,0 +1,10 @@
+*portage-mod_jabber-0.0.2 (30 May 2005)
+	21 May 2006; Lars Strojny <lars@schokokeks.org>
+	Fixed a missing "raise" on throwing a PortageException and deactivate the
+	debugging mechanism for xmpppy to reflect the introducation per default
+	in version 0.3.1 of xmpppy (http://xmpppy.sourceforge.net/)
+
+*portage-mod_jabber-0.0.1 (21 May 2006)
+
+	21 May 2006; Lars Strojny <lars@schokokeks.org>
+	Initial release
