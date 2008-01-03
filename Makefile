@@ -11,7 +11,7 @@ snapshot: clean
 	rm -rf /tmp/$(NAME)-$(VERSION)
 
 release: snapshot
-	scp $(NAME)-$(VERSION).* milch:websites/usrportage.de/software/usrportage.de/$(NAME)
+	scp $(NAME)-$(VERSION).* milch:websites/usrportage.de/usrportage.de/software.usrportage.de/$(NAME)
 
 clean:
 	rm -rf *~ *.tar.bz2 *.sha512 *.md5
