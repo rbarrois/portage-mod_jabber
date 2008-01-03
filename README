@@ -11,7 +11,7 @@ Configuration
 =============
 Edit /etc/make.conf and add the following options:
 Specify jabber as the elog system:         PORTAGE_ELOG_SYSTEM="jabber"
-Specify the sender jabber account:         PORTAGE_ELOG_JABBERFROM="sender@host.com:password"
+Specify the sender jabber account:         PORTAGE_ELOG_JABBERFROM="sender@host.com[/resource]:password"
 Specify a list of receivers:               PORTAGE_ELOG_JABBERTO="jid1@host.com jid2@host.com admin@foo.com"
 
 

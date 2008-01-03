@@ -13,7 +13,7 @@ def process(mysettings, cpv, logentries, fulltext):
 	# where jid: one or more jabber id separated by a whitespace
 	if mysettings["PORTAGE_ELOG_JABBERFROM"]:
 		if not ":" in mysettings["PORTAGE_ELOG_JABBERFROM"]:
-			raise portage_exception.PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user@host:password")
+			raise portage_exception.PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user@host[/resource]:password")
 		myfrom, mypass = mysettings["PORTAGE_ELOG_JABBERFROM"].split(":")
 		mysubject = mysettings["PORTAGE_ELOG_JABBERSUBJECT"]
 		if not mysubject:
@@ -23,7 +23,7 @@ def process(mysettings, cpv, logentries, fulltext):
 		mytos = mysettings["PORTAGE_ELOG_JABBERTO"].split(" ")
 		for myto in mytos:
 			jid = xmpp.JID(myfrom)
-			myuser, myserver = jid.getNode(), jid.getDomain()
+			myuser, myserver, myresource = jid.getNode(), jid.getDomain(), jid.getResource().replace("%hostname%", socket.gethostname())
 			try:
 				client = xmpp.Client(myserver, debug = False)
 				connected = client.connect()
@@ -32,7 +32,7 @@ def process(mysettings, cpv, logentries, fulltext):
 				if connected <> 'tls':
 					raise portage_exception.PortageException("!!! Warning: unable to estabilish secure connection - TLS failed!")
 
-				auth = client.auth(myuser,mypass)
+				auth = client.auth(myuser,mypass, myresource)
 				if not auth:
 					raise portage_exception.PortageException("!!! Could not authentificate to %s" %myserver)
 				if auth <> 'sasl':

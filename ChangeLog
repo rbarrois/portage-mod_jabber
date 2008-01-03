@@ -1,10 +1,15 @@
+*portage-mod_jabber-0.0.3 (3 Jan 2008)
+	3 Jan 2008; Lars Strojny <lars@strojny.net>
+	Added a facility to specify the Jabber resource. It is also possible to
+	use %hostname% in the resource string and get it replaced with the systems
+	hostname
+
 *portage-mod_jabber-0.0.2 (30 May 2005)
-	21 May 2006; Lars Strojny <lars@schokokeks.org>
+	21 May 2006; Lars Strojny <lars@strojny.net>
 	Fixed a missing "raise" on throwing a PortageException and deactivate the
 	debugging mechanism for xmpppy to reflect the introducation per default
 	in version 0.3.1 of xmpppy (http://xmpppy.sourceforge.net/)
 
 *portage-mod_jabber-0.0.1 (21 May 2006)
-
-	21 May 2006; Lars Strojny <lars@schokokeks.org>
+	21 May 2006; Lars Strojny <lars@strojny.net>
 	Initial release
