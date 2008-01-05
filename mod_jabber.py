@@ -1,4 +1,18 @@
-import socket, portage_exception, xmpp
+import socket, portage_exception, xmpp, re
+from urlparse import urlparse, urlsplit
+
+"""
+	user:pw@host.com[/resource]
+	user@host.com[/resource]:pw
+"""
+
+def normalize_xmpp_uri(uri):
+	if uri.find("@") < uri.find(":"):
+		uri = uri.replace("@", ":" + uri.partition(":")[2] + "@").rpartition(":")[0]
+	return uri
+
+def parse_xmpp_uri(uri):
+	return re.compile("^(?P<node>[^:]+):(?P<password>[^@]+)@(?P<host>[^/]+)/?(?P<resource>.*)").match(uri).groupdict()
 
 def process(mysettings, cpv, logentries, fulltext):
 	# Syntax for PORTAGE_ELOG_JABBERFROM:
