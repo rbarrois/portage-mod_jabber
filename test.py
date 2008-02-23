@@ -27,6 +27,5 @@ class TestParseXmppUri(unittest.TestCase):
 	def testParseUriWithResource(self):
 		self.assertEqual({"node": "user", "password": "****", "host": "host.com", "resource": "res"}, parse_xmpp_uri("user:****@host.com/res"))
 
-
 if __name__ == '__main__':
 	unittest.main()
