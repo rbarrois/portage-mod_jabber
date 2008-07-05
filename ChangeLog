@@ -1,3 +1,8 @@
+*portage_mod_jabber-0.0.5 (5 Jul 2008)
+	5 Jul 2008; Lars Strojny <lars@strojny.net>
+	Allow specifying the sender JID in a more standardized way:
+	node:pw@host.com[/resource]
+
 *portage-mod_jabber-0.0.3 (3 Jan 2008)
 	3 Jan 2008; Lars Strojny <lars@strojny.net>
 	Added a facility to specify the Jabber resource. It is also possible to
