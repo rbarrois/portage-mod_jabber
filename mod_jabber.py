@@ -28,11 +28,8 @@ def normalize_xmpp_uri(uri):
 	}
 """
 def parse_xmpp_uri (uri):
-	print uri
 	regex = re.compile ("^(?P<node>[^:]+):(?P<password>[^@]+)@(?P<host>[^/]+)/?(?P<resource>.*)")
-	print regex
 	matched = regex.match (uri)
-	print matched
 	return matched.groupdict ()
 
 def process (settings, cpv, logentries, fulltext):
