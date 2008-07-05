@@ -23,7 +23,7 @@ class TestNormalizeXmppUri(unittest.TestCase):
 class TestParseXmppUri(unittest.TestCase):
 	def testParseUriWithoutResource(self):
 		self.assertEqual({"node": "user", "password": "****", "host": "host.com", "resource": ""}, parse_xmpp_uri("user:****@host.com"))
-	
+
 	def testParseUriWithResource(self):
 		self.assertEqual({"node": "user", "password": "****", "host": "host.com", "resource": "res"}, parse_xmpp_uri("user:****@host.com/res"))
 
