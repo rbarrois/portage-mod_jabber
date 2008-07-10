@@ -2,7 +2,7 @@ import socket, xmpp, re
 from urlparse import urlparse, urlsplit
 try:
 	from portage.exception import PortageException
-except LoadError:
+except ImportError:
 	# Portage <2.2 compatibility
 	from portage_exception import PortageException
 
