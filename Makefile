@@ -1,5 +1,5 @@
 NAME = portage-mod_jabber
-VERSION = 0.0.5
+VERSION = 0.0.5.1
 
 snapshot: clean
 	mkdir /tmp/$(NAME)-$(VERSION)
