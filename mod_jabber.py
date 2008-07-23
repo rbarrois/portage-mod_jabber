@@ -30,7 +30,10 @@ def normalize_xmpp_uri(uri):
 def parse_xmpp_uri (uri):
 	regex = re.compile ("^(?P<node>[^:]+):(?P<password>[^@]+)@(?P<host>[^/]+)/?(?P<resource>.*)")
 	matched = regex.match (uri)
-	return matched.groupdict ()
+	parts = matched.groupdict ()
+	parts['resource'] = \
+		parts['resource'].replace ('%hostname%', socket.gethostname ())
+	return parts
 
 def process (settings, cpv, logentries, fulltext):
 	# Syntax for PORTAGE_ELOG_JABBERFROM:
@@ -52,8 +55,8 @@ def process (settings, cpv, logentries, fulltext):
 		sender = settings["PORTAGE_ELOG_JABBERFROM"]
 		if not ":" in sender or not "@" in sender:
 			raise PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user:password@host[/resource]")
-		sender  = normalize_xmpp_uri (settings["PORTAGE_ELOG_JABBERFROM"])
-		parts   = parse_xmpp_uri (sender)
+		sender = normalize_xmpp_uri (settings["PORTAGE_ELOG_JABBERFROM"])
+		parts  = parse_xmpp_uri (sender)
 		for recipient in settings["PORTAGE_ELOG_JABBERTO"].split(" "):
 			try:
 				client = xmpp.Client (parts["host"], debug = False)
@@ -72,4 +75,4 @@ def process (settings, cpv, logentries, fulltext):
 
 				client.send (message)
 			except Exception, e:
-				raise PortageException ("!!! An error occured while sending a jabber message to "+str(recipient)+": "+str(e))
+				raise PortageException ("!!! An error occured while sending a jabber message to " + str(recipient) + ": " + str(e))
