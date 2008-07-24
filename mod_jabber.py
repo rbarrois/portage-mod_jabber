@@ -49,30 +49,44 @@ def parse_xmpp_uri (uri):
 	matched = regex.match (uri)
 	parts = matched.groupdict ()
 	parts['resource'] = \
-		parts['resource'].replace ('%hostname%', socket.gethostname ())
+		parts['resource'] \
+			.replace ('%hostname%', socket.gethostname ()) \
+			.replace ('%HOSTNAME%', socket.gethostname ()) \
+			.replace ('${hostname}', socket.gethostname ()) \
+			.replace ('${HOSTNAME}', socket.gethostname ())
 	return parts
 
-def send_xmpp_message (sender, recipient, subject, text):
+def xmpp_client_factory (sender):
 	try:
 		client = xmpp.Client (sender["host"], debug = False)
 		connected = client.connect ()
 		if not connected:
-			raise PortageException ("!!! Unable to connect to %s" % server)
+			raise PortageException \
+				("!!! Unable to connect to %s" % sender['server'])
 		if connected <> 'tls':
 			raise PortageException ("!!! Warning: unable to estabilish secure connection - TLS failed!")
 		auth = client.auth (sender['node'], sender['password'], sender['resource'])
 		if not auth:
-			raise PortageException ("!!! Could not authentificate to %s" % server)
+			raise PortageException \
+				("!!! Could not authentificate to %s" % sender['server'])
 		if auth <> 'sasl':
-			raise PortageException ("!!! Unable to perform SASL auth to %s" % server)
+			raise PortageException \
+				("!!! Unable to perform SASL auth to %s" % sender['server'])
+		return client
+	except Exception, e:
+		raise PortageException \
+			("!!! An error occured while connecting to jabber server %s" % str (e))
+
+def send_xmpp_message (client, recipient, subject, text):
+	try:
 		message = xmpp.protocol.Message (recipient, text, "message", subject)
 		client.send (message)
 	except Exception, e:
 		raise PortageException \
 			("!!! An error occured while sending a jabber message to %s: %s" \
-				% str (recipient), str (e))
+				% recipient, str (e))
 
-def process (settings, cpv, logentries, fulltext):
+def process (settings, package, logentries, fulltext):
 	# Syntax for PORTAGE_ELOG_JABBERFROM:
 	# jid [user:password@host[/resource]
 	# where jid:       sender jabber id
@@ -87,13 +101,14 @@ def process (settings, cpv, logentries, fulltext):
 		subject = settings["PORTAGE_ELOG_JABBERSUBJECT"]
 		if not subject:
 			subject = settings["PORTAGE_ELOG_MAILSUBJECT"]
-		subject = subject.replace("${PACKAGE}", cpv)
-		subject = subject.replace("${HOST}", socket.getfqdn())
+		subject = subject.replace ("${PACKAGE}", package)
+		subject = subject.replace ("${HOST}", socket.getfqdn())
 		sender = settings["PORTAGE_ELOG_JABBERFROM"]
 		if not ":" in sender or not "@" in sender:
 			raise PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user:password@host[/resource]")
 		sender = normalize_xmpp_uri (settings["PORTAGE_ELOG_JABBERFROM"])
 		sender  = parse_xmpp_uri (sender)
+		client = xmpp_client_factory (sender)
 		for recipient in settings["PORTAGE_ELOG_JABBERTO"].split(" "):
-			send_xmpp_message (sender, recipient, subject, fulltext)
+			send_xmpp_message (client, recipient, subject, fulltext)
 
