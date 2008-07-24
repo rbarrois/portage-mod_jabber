@@ -29,6 +29,7 @@ class TestParseXmppUri(unittest.TestCase):
 
 	def testParseReplaceHostname(self):
 		self.assertEqual (parse_xmpp_uri ("user:***@host.com/%hostname%")['resource'].find ("%hostname%"), -1)
+		self.assertEqual (parse_xmpp_uri ("user:***@host.com/%hostname")['resource'].find ("%hostname"), 0)
 
 if __name__ == '__main__':
 	unittest.main()
