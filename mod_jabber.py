@@ -30,9 +30,9 @@ except ImportError:
 
 	=> user:pw@host.com[/resource]
 """
-def normalize_xmpp_uri(uri):
-	if uri.find("@") < uri.find(":"):
-		uri = uri.replace("@", ":" + uri.partition(":")[2] + "@").rpartition(":")[0]
+def normalize_xmpp_uri (uri):
+	if uri.find ("@") < uri.find (":"):
+		uri = uri.replace ("@", ":" + uri.partition (":")[2] + "@").rpartition (":")[0]
 	return uri
 
 """
@@ -116,12 +116,12 @@ def process (settings, package, logentries, fulltext):
 		if not subject:
 			subject = settings["PORTAGE_ELOG_MAILSUBJECT"]
 		subject = subject.replace ("${PACKAGE}", package)
-		subject = subject.replace ("${HOST}", socket.getfqdn())
+		subject = subject.replace ("${HOST}", socket.getfqdn ())
 		sender = settings["PORTAGE_ELOG_JABBERFROM"]
 		if not ":" in sender or not "@" in sender:
-			raise PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user:password@host[/resource]")
+			raise PortageException ("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user:password@host[/resource]")
 		sender = normalize_xmpp_uri (settings["PORTAGE_ELOG_JABBERFROM"])
 		sender  = parse_xmpp_uri (sender)
 		client = xmpp_client_factory (sender)
-		for recipient in settings["PORTAGE_ELOG_JABBERTO"].split(" "):
+		for recipient in settings["PORTAGE_ELOG_JABBERTO"].split (" "):
 			send_xmpp_message (client, recipient, subject, fulltext)
