@@ -2,7 +2,7 @@
 #
 # portage-mod_jabber - An XMPP plugin for Gentoo Portage
 #
-# Copyright © 2005 - 2008 Lars Strojny <lars@strojny.net>
+# Copyright © 2005-2008 Lars Strojny <lars@strojny.net>
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
