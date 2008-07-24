@@ -1,5 +1,5 @@
 NAME = portage-mod_jabber
-VERSION = 0.0.5.2-dev
+VERSION = 0.0.6-dev
 PLUGIN_FILE = mod_jabber.py
 
 snapshot: clean
