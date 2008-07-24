@@ -1,5 +1,6 @@
 NAME = portage-mod_jabber
 VERSION = 0.0.5.2-dev
+PLUGIN_FILE = mod_jabber.py
 
 snapshot: clean
 	mkdir /tmp/$(NAME)-$(VERSION)
@@ -12,6 +13,10 @@ snapshot: clean
 
 release: snapshot
 	scp $(NAME)-$(VERSION).* milch:websites/software.usrportage.de/htdocs/$(NAME)
+
+testinstall:
+	python $(PLUGIN_FILE)
+	sudo cp $(PLUGIN_FILE) /usr/lib64/portage/pym/portage/elog/$(PLUGIN_FILE)
 
 clean:
 	rm -rf *~ *.tar.bz2 *.sha512 *.md5 *.pyc
