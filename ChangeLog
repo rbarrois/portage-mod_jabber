@@ -1,7 +1,8 @@
-*portage_mod_jabber-0.0.6 ()
+*portage_mod_jabber-0.0.5.2 ()
 	23 Jul 2008; Lars Strojny <lars@strojny.net>
-	Replace %hostname% in the sender resource with the hostname of the machine
-	the machine plugin is running
+	Bring back the possibility to replace %hostname% in the sender resource
+	with the hostname of the machine the machine plugin is running. This
+	regression was introduced in 0.0.5
 
 *portage_mod_jabber-0.0.5.1 (6 Jul 2008)
 	6 Jul 2008; Lars Strojny <lars@strojny.net>
