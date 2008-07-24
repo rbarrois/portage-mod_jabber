@@ -36,6 +36,8 @@ def normalize_xmpp_uri(uri):
 	return uri
 
 """
+	Parsing JID into a hash of its parts
+
 	user:pw@host.com[/resource]
 	=> {
 		node: <user>
@@ -56,6 +58,9 @@ def parse_xmpp_uri (uri):
 			.replace ('${HOSTNAME}', socket.gethostname ())
 	return parts
 
+"""
+	Returning a configured XMPP client instance	
+"""
 def xmpp_client_factory (sender):
 	try:
 		client = xmpp.Client (sender["host"], debug = False)
@@ -77,6 +82,9 @@ def xmpp_client_factory (sender):
 		raise PortageException \
 			("!!! An error occured while connecting to jabber server %s" % str (e))
 
+"""
+	Sending a Jabber message
+"""
 def send_xmpp_message (client, recipient, subject, text):
 	try:
 		message = xmpp.protocol.Message (recipient, text, "message", subject)
@@ -86,17 +94,23 @@ def send_xmpp_message (client, recipient, subject, text):
 			("!!! An error occured while sending a jabber message to %s: %s" \
 				% recipient, str (e))
 
+"""
+	Portage plugin hook
+
+	Configuration:
+	Syntax for PORTAGE_ELOG_JABBERFROM:
+		jid [user:password@host[/resource]
+		where jid: sender jabber id
+	       user:      jabber user
+	       server:    jabber server
+	       password:  password to authentificate
+		   resource:  sender resource which might include placeholders
+	
+	Syntax for PORTAGE_ELOG_JABBERTO:
+		jid user@host[ user@host]
+		where jid: one or more jabber id separated by a whitespace
+"""
 def process (settings, package, logentries, fulltext):
-	# Syntax for PORTAGE_ELOG_JABBERFROM:
-	# jid [user:password@host[/resource]
-	# where jid:       sender jabber id
-	#       user:      jabber user
-	#       server:    jabber server
-	#       password:  password to authentificate
-	#
-	# Syntax for PORTAGE_ELOG_JABBERTO:
-	# jid user@host[ user@host]
-	# where jid: one or more jabber id separated by a whitespace
 	if settings["PORTAGE_ELOG_JABBERFROM"]:
 		subject = settings["PORTAGE_ELOG_JABBERSUBJECT"]
 		if not subject:
@@ -111,4 +125,3 @@ def process (settings, package, logentries, fulltext):
 		client = xmpp_client_factory (sender)
 		for recipient in settings["PORTAGE_ELOG_JABBERTO"].split(" "):
 			send_xmpp_message (client, recipient, subject, fulltext)
-
