@@ -1,4 +1,4 @@
-*portage_mod_jabber-0.0.5.2 ()
+*portage_mod_jabber-0.0.5.2-dev ()
 	23 Jul 2008; Lars Strojny <lars@strojny.net>
 	Bring back the possibility to replace %hostname% in the sender resource
 	with the hostname of the machine the machine plugin is running. This
