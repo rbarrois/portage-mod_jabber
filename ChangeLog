@@ -1,3 +1,12 @@
+*portage_mod_jabber-0.0.6 ()
+	23 Jul 2008; Lars Strojny <lars@strojny.net>
+	Replace %hostname% in the sender resource with the hostname of the machine
+	the machine plugin is running
+
+*portage_mod_jabber-0.0.5.1 (6 Jul 2008)
+	6 Jul 2008; Lars Strojny <lars@strojny.net>
+	Bugfix release to be compatible with portage 2.2 and 2.0.x
+
 *portage_mod_jabber-0.0.5 (5 Jul 2008)
 	5 Jul 2008; Lars Strojny <lars@strojny.net>
 	Allow specifying the sender JID in a more standardized way:
