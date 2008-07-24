@@ -1,4 +1,4 @@
-*portage_mod_jabber-0.0.5.2-dev ()
+*portage_mod_jabber-0.0.6-dev ()
 	23 Jul 2008; Lars Strojny <lars@strojny.net>
 	Refactored the internal structure to reuse the XMPP client object for each
 	message sent
