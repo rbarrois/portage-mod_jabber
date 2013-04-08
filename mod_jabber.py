@@ -19,10 +19,14 @@
 import socket
 import re
 
-import xmpp
+from pyxmpp2.client import Client
+from pyxmpp2.interfaces import EventHandler, event_handler, QUIT
+from pyxmpp2.jid import JID
+from pyxmpp2.message import Message
+from pyxmpp2.settings import XMPPSettings
+from pyxmpp2.streamevents import AuthorizedEvent, DisconnectedEvent
 
 
-from urlparse import urlparse, urlsplit
 try:
     from portage.exception import PortageException
 except ImportError:
@@ -30,73 +34,112 @@ except ImportError:
     from portage_exception import PortageException
 
 
-def normalize_xmpp_uri(uri):
-    """Normalize a XMPP URI.
+class ElogHandler(EventHandler):
+    """Handles elog messages."""
+    def __init__(self, targets, subject, fulltext):
+        self.targets = targets
+        self.subject = subject
+        self.fulltext = fulltext
 
-        user:pw@host.com[/resource]
-        user@host.com[/resource]:pw
+    @event_handler(AuthorizedEvent)
+    def handle_authorized(self, event):
+        """Just received authorization."""
+        for target in self.targets:
+            message = Message(to_jid=target, subject=self.subject, body=self.fulltext)
+            event.stream.send(message)
+        event.stream.disconnect()
 
-        => user:pw@host.com[/resource]
-    """
-    if uri.find("@") < uri.find(":"):
-        uri = uri.replace("@", ":" + uri.partition(":")[2] + "@").rpartition(":")[0]
-    return uri
+    @event_handler(DisconnectedEvent)
+    def handle_disconnected(self, event):
+        return QUIT
+
+    @event_handler()
+    def handle_all(self, event):
+        pass
 
 
-def parse_xmpp_uri(uri):
-    """Parsing JID into a hash of its parts
+class ElogProcessor(object):
+    """Processes Elog messages."""
 
-        user:pw@host.com[/resource]
-        => {
-            node: <user>
-            password: <pw>
-            host: <host>
-            resource: <resource>
-        }
-    """
-    regex = re.compile("^(?P<node>[^:]+):(?P<password>[^@]+)@(?P<host>[^/]+)/?(?P<resource>.*)")
-    matched = regex.match(uri)
-    parts = matched.groupdict()
-    parts['resource'] = (
-        parts['resource']
-            .replace('%hostname%', socket.gethostname())
-            .replace('%HOSTNAME%', socket.gethostname())
-            .replace('${hostname}', socket.gethostname())
-            .replace('${HOSTNAME}', socket.gethostname())
+    def __init__(self, sender, settings):
+        self.sender = self._parse_uri(sender)
+        self.settings = settings
+
+    @classmethod
+    def parse_uri(cls, uri):
+        # For user:password@host/resource
+        base_regex = r'^(?P<node>[^:@]+):(?P<password>[^@]+)@(?P<host>[^/]+)(?:/(?P<resource>.*))?$'
+        # For user@host/resource:password
+        alt_regex = r'^(?P<node>[^@]+)@(?P<host>[^/:]+)(?:/(?P<resource>[^:]+))?:(?P<password>.*)$'
+
+        base_match = re.match(base_regex, uri)
+        if base_match:
+            return base_match.groupdict()
+
+        alt_match = re.match(alt_regex, uri)
+        if alt_match:
+            return alt_match.groupdict()
+
+        raise PortageException("No suitable URI found in %s" % uri)
+
+    @classmethod
+    def interpolate_resource(cls, resource):
+        if not resource:
+            return ''
+        hostname = socket.gethostname()
+        return (resource
+            .replace('%hostname%', hostname)
+            .replace('%HOSTNAME%', hostname)
+            .replace('${hostname}', hostname)
+            .replace('${HOSTNAME}', hostname)
         )
-    return parts
 
+    @classmethod
+    def make_jid(cls, sender):
+        resource = cls.interpolate_resource(sender['resource'])
+        return JID(
+            local_or_jid=sender['node'],
+            domain=sender['host'],
+            resource=resource,
+        )
 
-def xmpp_client_factory(sender):
-    """Returning a configured XMPP client instance."""
-    try:
-        client = xmpp.Client(sender["host"], debug=False)
+    @classmethod
+    def make_settings(cls, sender):
+        settings = XMPPSettings({
+            'starttls': True,
+            'tls_verify_peer': False,
+        })
+        if sender['password']:
+            settings['password'] = sender['password']
+        return settings
 
-        connected = client.connect()
-        if not connected:
-            raise PortageException("!!! Unable to connect to %s" % sender['server'])
-        if connected != 'tls':
-            raise PortageException("!!! Warning: unable to estabilish secure connection - TLS failed!")
+    def make_client(self, handler):
+        """Prepare a XMPP client."""
+        jid = self.make_jid(self.sender)
+        return Client(jid, [handler], settings)
 
-        auth = client.auth(sender['node'], sender['password'], sender['resource'])
-        if not auth:
-            raise PortageException("!!! Could not authentificate to %s" % sender['server'])
-        if auth != 'sasl':
-            raise PortageException("!!! Unable to perform SASL auth to %s" % sender['server'])
+    @classmethod
+    def make_subject(cls, pattern, package):
+        host = socket.getfqdn()
+        return (pattern
+            .replace('${PACKAGE}', package)
+            .replace('${HOST}', host)
+        )
 
-        return client
-    except Exception as e:
-        raise PortageException("!!! An error occured while connecting to jabber server %s" % str(e))
+    def make_handler(self, package, fulltext):
+        pattern = self.settings['PORTAGE_ELOG_JABBERSUBJECT'] or self.settings['PORTAGE_ELOG_MAILSUBJECT']
+        subject = self.make_subject(pattern, package)
+        return ElogHandler(
+            targets=self.settings['PORTAGE_ELOG_JABBERTO'].split(),
+            subject=subject,
+            fulltext=fulltext,
+        )
 
-
-def send_xmpp_message(client, recipient, subject, text):
-    """Sending a Jabber message"""
-    try:
-        message = xmpp.protocol.Message(recipient, text, "message", subject)
-        client.send(message)
-    except Exception, e:
-        raise PortageException("!!! An error occured while sending a jabber message to %s: %s"
-                % recipient, str(e))
+    def notify(self, package, fulltext):
+        handler = self.make_handler(package, fulltext)
+        client = self.make_client(handler)
+        client.connect()
+        client.run()
 
 
 def process(settings, package, logentries, fulltext):
@@ -115,17 +158,9 @@ def process(settings, package, logentries, fulltext):
             jid user@host[ user@host]
             where jid: one or more jabber id separated by a whitespace
     """
-    if settings["PORTAGE_ELOG_JABBERFROM"]:
-        subject = settings["PORTAGE_ELOG_JABBERSUBJECT"]
-        if not subject:
-            subject = settings["PORTAGE_ELOG_MAILSUBJECT"]
-        subject = subject.replace("${PACKAGE}", package)
-        subject = subject.replace("${HOST}", socket.getfqdn())
-        sender = settings["PORTAGE_ELOG_JABBERFROM"]
-        if not ":" in sender or not "@" in sender:
-            raise PortageException("!!! Invalid syntax for PORTAGE_ELOG_JABBERFROM. Use user:password@host[/resource]")
-        sender = normalize_xmpp_uri(settings["PORTAGE_ELOG_JABBERFROM"])
-        sender  = parse_xmpp_uri(sender)
-        client = xmpp_client_factory(sender)
-        for recipient in settings["PORTAGE_ELOG_JABBERTO"].split(" "):
-            send_xmpp_message(client, recipient, subject, fulltext)
+    sender = settings['PORTAGE_ELOG_JABBERFROM']
+    if not sender:
+        return
+
+    processor = ElogProcessor(sender, settings)
+    processor.notify(package, fulltext)

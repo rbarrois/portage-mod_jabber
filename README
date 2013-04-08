@@ -10,8 +10,8 @@ Concerns?
 
 portage-mod_jabber is a elog-module for Gentoo's portage to do notification 
 via Jabber. You be able to send jabber notification on warnings, info messages
-and errors. It utilizes xmpppy (http://xmpppy.sourceforge.net) to work with the 
-XMPP-protocoll, so it is need as a dependency. 
+and errors. It utilizes pyxmpp2 (https://github.com/Jajcus/pyxmpp2) to work with the
+XMPP protocol, so it is needed as a dependency.
 
 
 Configuration
@@ -30,3 +30,7 @@ Specify the sender jabber account::
 Specify a list of receivers::
 
   PORTAGE_ELOG_JABBERTO="jid1@host.com jid2@host.com admin@foo.com"
+
+Specify a message pattern::
+
+  PORTAGE_ELOG_JABBERSUBJECT="[${PACKAGE} on ${HOST}]"
