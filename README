@@ -1,4 +1,12 @@
+portage-mod_jabber
+==================
+
+This portage-elog module will send elog notifications to a list of jabber contacts.
+This repository is a fork from http://svn.usrportage.de/portage-mod_jabber/trunk,
+adding Python3 support.
+
 Concerns?
+=========
 
 portage-mod_jabber is a elog-module for Gentoo's portage to do notification 
 via Jabber. You be able to send jabber notification on warnings, info messages
@@ -7,8 +15,18 @@ XMPP-protocoll, so it is need as a dependency.
 
 
 Configuration
+=============
 
-Edit /etc/make.conf and add the following options:
-Specify jabber as the elog system: PORTAGE_ELOG_SYSTEM="jabber"
-Specify the sender jabber account: PORTAGE_ELOG_JABBERFROM="sender:password@host.com[/resource]"
-Specify a list of receivers:       PORTAGE_ELOG_JABBERTO="jid1@host.com jid2@host.com admin@foo.com"
+Edit ``/etc/make.conf`` and add the following options:
+
+Specify jabber as the elog system::
+
+  PORTAGE_ELOG_SYSTEM="jabber"
+
+Specify the sender jabber account::
+
+  PORTAGE_ELOG_JABBERFROM="sender:password@host.com[/resource]"
+
+Specify a list of receivers::
+
+  PORTAGE_ELOG_JABBERTO="jid1@host.com jid2@host.com admin@foo.com"
