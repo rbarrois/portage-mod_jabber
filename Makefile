@@ -2,6 +2,9 @@ NAME = portage-mod_jabber
 VERSION = 0.0.6-dev
 PLUGIN_FILE = mod_jabber.py
 
+test:
+	python test.py
+
 snapshot: clean
 	mkdir /tmp/$(NAME)-$(VERSION)
 	cp * /tmp/$(NAME)-$(VERSION)

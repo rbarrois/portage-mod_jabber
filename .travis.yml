@@ -1,0 +1,14 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "pypy"
+
+script:
+  - make test
+
+notifications:
+  email: false
+  irc: "irc.freenode.org#XelNext"
