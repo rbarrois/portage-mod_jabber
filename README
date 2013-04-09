@@ -1,9 +1,14 @@
 portage-mod_jabber
 ==================
 
+.. image:: https://secure.travis-ci.org/rbarrois/factory_boy.png?branch=master
+    :target: http://travis-ci.org/rbarrois/factory_boy/
+
 This portage-elog module will send elog notifications to a list of jabber contacts.
 This repository is a fork from http://svn.usrportage.de/portage-mod_jabber/trunk,
 adding Python3 support.
+
+The new version fully supports Python 2.7, 3.2, 3.3, pypy (validated through continuous integration).
 
 Concerns?
 =========
@@ -17,7 +22,7 @@ XMPP protocol, so it is needed as a dependency.
 Configuration
 =============
 
-Edit ``/etc/make.conf`` and add the following options:
+Edit ``/etc/portage/make.conf`` and add the following options:
 
 Specify jabber as the elog system::
 
