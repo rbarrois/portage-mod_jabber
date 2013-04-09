@@ -31,7 +31,12 @@ try:
     from portage.exception import PortageException
 except ImportError:
     # Portage <2.2 compatibility
-    from portage_exception import PortageException
+    try:
+        from portage_exception import PortageException
+    except ImportError:
+        # No portage installed
+        class PortageException(Exception):
+            pass
 
 
 class ElogHandler(EventHandler):
