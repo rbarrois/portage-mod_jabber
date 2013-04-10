@@ -67,7 +67,7 @@ class ElogProcessor(object):
     """Processes Elog messages."""
 
     def __init__(self, sender, settings):
-        self.sender = self._parse_uri(sender)
+        self.sender = self.parse_uri(sender)
         self.settings = settings
 
     @classmethod
