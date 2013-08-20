@@ -1,3 +1,8 @@
+*portage_mod_jabber-0.0.7 (21 Aug 2013)
+	21 Aug 2013; Raphaël Barrois <gentoo@xelnor.net>
+	Refactored the whole project to use sleekxmpp, and add Python3
+	compatibility.
+
 *portage_mod_jabber-0.0.6 (11 Apr 2013)
 	11 Apr 2013; Raphaël Barrois <gentoo@xelnor.net>
 	Refactored the whole project to use pyxmpp, and add Python3

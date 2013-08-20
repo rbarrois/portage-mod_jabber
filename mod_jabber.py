@@ -19,12 +19,7 @@
 import socket
 import re
 
-from pyxmpp2.client import Client
-from pyxmpp2.interfaces import EventHandler, event_handler, QUIT
-from pyxmpp2.jid import JID
-from pyxmpp2.message import Message
-from pyxmpp2.settings import XMPPSettings
-from pyxmpp2.streamevents import AuthorizedEvent, DisconnectedEvent
+import sleekxmpp
 
 
 try:
@@ -39,36 +34,41 @@ except ImportError:
             pass
 
 
-class ElogHandler(EventHandler):
+class ElogClient(sleekxmpp.ClientXMPP):
     """Handles elog messages."""
-    def __init__(self, targets, subject, fulltext):
-        self.targets = targets
-        self.subject = subject
-        self.fulltext = fulltext
+    def __init__(self, jid, password, handler):
+        super(ElogClient, self).__init__(jid, password)
+        self.on_connect_handler = handler
+        self.add_event_handler('session_start', self.on_connect, threaded=True)
 
-    @event_handler(AuthorizedEvent)
-    def handle_authorized(self, event):
-        """Just received authorization."""
-        for target in self.targets:
-            message = Message(to_jid=target, subject=self.subject, body=self.fulltext)
-            event.stream.send(message)
-        event.stream.disconnect()
+    def on_connect(self, event):
+        self.on_connect_handler.handle(self, event)
 
-    @event_handler(DisconnectedEvent)
-    def handle_disconnected(self, event):
-        return QUIT
 
-    @event_handler()
-    def handle_all(self, event):
-        pass
+class ElogHandler(object):
+    def __init__(self, message):
+        self.message = message
+
+    def handle(self, client, event):
+        """Process the 'connected' event."""
+        client.send_presence()
+        client.get_roster()
+
+        for target in self.message['targets']:
+            client.send_message(
+                mto=target,
+                msubject=self.message['subject'],
+                mbody=self.message['message'],
+            )
+        client.disconnect(wait=True)
 
 
 class ElogProcessor(object):
     """Processes Elog messages."""
 
-    def __init__(self, sender, settings):
+    def __init__(self, sender, portage_settings):
         self.sender = self.parse_uri(sender)
-        self.settings = settings
+        self.portage_settings = portage_settings
 
     @classmethod
     def parse_uri(cls, uri):
@@ -99,52 +99,50 @@ class ElogProcessor(object):
             .replace('${HOSTNAME}', hostname)
         )
 
+    def prepare_message(self, package, fulltext):
+        """Prepare the message to send."""
+        pattern = (self.portage_settings['PORTAGE_ELOG_JABBERSUBJECT']
+                or self.portage_settings['PORTAGE_ELOG_MAILSUBJECT'])
+
+        host = socket.getfqdn()
+        subject = (pattern
+            .replace('${PACKAGE}', package)
+            .replace('${HOST}', host)
+        )
+        return {
+            'subject': subject,
+            'message': fulltext,
+            'targets': self.portage_settings['PORTAGE_ELOG_JABBERTO'].split(),
+          }
+
+    # XMPP backend-specific methods
     @classmethod
     def make_jid(cls, sender):
+        """Parse our 'sender' JID"""
         resource = cls.interpolate_resource(sender['resource'])
-        return JID(
-            local_or_jid=sender['node'],
+        return sleekxmpp.JID(
+            local=sender['node'],
             domain=sender['host'],
             resource=resource,
         )
 
-    @classmethod
-    def make_settings(cls, sender):
-        settings = XMPPSettings({
-            'starttls': True,
-            'tls_verify_peer': False,
-        })
-        if sender['password']:
-            settings['password'] = sender['password']
-        return settings
+    def make_client(self, connected_handler):
+        """Prepare a XMPP client.
 
-    def make_client(self, handler):
-        """Prepare a XMPP client."""
+        Adds a 'connected' handler."""
         jid = self.make_jid(self.sender)
-        return Client(jid, [handler], settings)
+        return ElogClient(jid, self.sender['password'], handler=connected_handler)
 
-    @classmethod
-    def make_subject(cls, pattern, package):
-        host = socket.getfqdn()
-        return (pattern
-            .replace('${PACKAGE}', package)
-            .replace('${HOST}', host)
-        )
-
-    def make_handler(self, package, fulltext):
-        pattern = self.settings['PORTAGE_ELOG_JABBERSUBJECT'] or self.settings['PORTAGE_ELOG_MAILSUBJECT']
-        subject = self.make_subject(pattern, package)
-        return ElogHandler(
-            targets=self.settings['PORTAGE_ELOG_JABBERTO'].split(),
-            subject=subject,
-            fulltext=fulltext,
-        )
+    def make_handler(self, message):
+        """Prepare the 'connected' handler."""
+        return ElogHandler(message)
 
     def notify(self, package, fulltext):
-        handler = self.make_handler(package, fulltext)
+        message = self.prepare_message(package, fulltext)
+        handler = self.make_handler(message)
         client = self.make_client(handler)
-        client.connect()
-        client.run()
+        if client.connect():
+            client.process(block=True)
 
 
 def process(settings, package, logentries, fulltext):
