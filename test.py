@@ -120,47 +120,26 @@ class MakeJIDTestCase(unittest.TestCase):
         self.assertEqual('foo/%s' % self.host, jid.resource)
 
 
-class MakeSettingsTestCase(unittest.TestCase):
-
-    def test_no_resource(self):
-        settings = ElogProcessor.make_settings(ElogProcessor.parse_uri('node:****@host.com'))
-        self.assertTrue(settings['starttls'])
-        self.assertFalse(settings['tls_verify_peer'])
-        self.assertEqual('****', settings['password'])
-
-    def test_simple_resource(self):
-        settings = ElogProcessor.make_settings(ElogProcessor.parse_uri('node:****@host.com/foo'))
-        self.assertTrue(settings['starttls'])
-        self.assertFalse(settings['tls_verify_peer'])
-        self.assertEqual('****', settings['password'])
-
-    def test_hostname_resource(self):
-        settings = ElogProcessor.make_settings(ElogProcessor.parse_uri('node:****@host.com/foo/%hostname%'))
-        self.assertTrue(settings['starttls'])
-        self.assertFalse(settings['tls_verify_peer'])
-        self.assertEqual('****', settings['password'])
-
-
 class MakeSubjectTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.host = socket.getfqdn()
 
     def test_fixed(self):
-        subject = ElogProcessor.make_subject('foo-bar', 'app-misc/foo')
-        self.assertEqual('foo-bar', subject)
+        message = ElogProcessor.prepare_message('foo-bar', 'app-misc/foo')
+        self.assertEqual('foo-bar', message['subject'])
 
     def test_package(self):
-        subject = ElogProcessor.make_subject('[${PACKAGE}] elog', 'app-misc/foo')
-        self.assertEqual('[app-misc/foo] elog', subject)
+        message = ElogProcessor.prepare_message('[${PACKAGE}] elog', 'app-misc/foo')
+        self.assertEqual('[app-misc/foo] elog', message['subject'])
 
     def test_host(self):
-        subject = ElogProcessor.make_subject('[${HOST}] elog', 'app-misc/foo')
-        self.assertEqual('[%s] elog' % self.host, subject)
+        message = ElogProcessor.prepare_message('[${HOST}] elog', 'app-misc/foo')
+        self.assertEqual('[%s] elog' % self.host, message['subject'])
 
     def test_host_package(self):
-        subject = ElogProcessor.make_subject('[${PACKAGE}] elog on ${HOST}', 'app-misc/foo')
-        self.assertEqual('[app-misc/foo] elog on %s' % self.host, subject)
+        message = ElogProcessor.prepare_message('[${PACKAGE}] elog on ${HOST}', 'app-misc/foo')
+        self.assertEqual('[app-misc/foo] elog on %s' % self.host, message['subject'])
 
 
 
