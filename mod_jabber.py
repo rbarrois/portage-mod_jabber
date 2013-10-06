@@ -120,11 +120,13 @@ class ElogProcessor(object):
     def make_jid(cls, sender):
         """Parse our 'sender' JID"""
         resource = cls.interpolate_resource(sender['resource'])
-        return sleekxmpp.JID(
-            local=sender['node'],
-            domain=sender['host'],
-            resource=resource,
-        )
+        kwargs = {
+            'local': sender['node'],
+            'domain': sender['host'],
+        }
+        if resource:
+            kwargs['resource'] = resource
+        return sleekxmpp.JID(**kwargs)
 
     def make_client(self, connected_handler):
         """Prepare a XMPP client.

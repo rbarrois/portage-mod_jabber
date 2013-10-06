@@ -105,7 +105,7 @@ class MakeJIDTestCase(unittest.TestCase):
         jid = ElogProcessor.make_jid(ElogProcessor.parse_uri('node:****@host.com'))
         self.assertEqual('node', jid.local)
         self.assertEqual('host.com', jid.domain)
-        self.assertEqual(None, jid.resource)
+        self.assertEqual('', jid.resource)
 
     def test_simple_resource(self):
         jid = ElogProcessor.make_jid(ElogProcessor.parse_uri('node:****@host.com/foo'))
@@ -118,29 +118,6 @@ class MakeJIDTestCase(unittest.TestCase):
         self.assertEqual('node', jid.local)
         self.assertEqual('host.com', jid.domain)
         self.assertEqual('foo/%s' % self.host, jid.resource)
-
-
-class MakeSubjectTestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.host = socket.getfqdn()
-
-    def test_fixed(self):
-        message = ElogProcessor.prepare_message('foo-bar', 'app-misc/foo')
-        self.assertEqual('foo-bar', message['subject'])
-
-    def test_package(self):
-        message = ElogProcessor.prepare_message('[${PACKAGE}] elog', 'app-misc/foo')
-        self.assertEqual('[app-misc/foo] elog', message['subject'])
-
-    def test_host(self):
-        message = ElogProcessor.prepare_message('[${HOST}] elog', 'app-misc/foo')
-        self.assertEqual('[%s] elog' % self.host, message['subject'])
-
-    def test_host_package(self):
-        message = ElogProcessor.prepare_message('[${PACKAGE}] elog on ${HOST}', 'app-misc/foo')
-        self.assertEqual('[app-misc/foo] elog on %s' % self.host, message['subject'])
-
 
 
 if __name__ == '__main__':
