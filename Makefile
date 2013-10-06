@@ -2,6 +2,11 @@ NAME = portage-mod_jabber
 VERSION = 0.0.7
 PLUGIN_FILE = mod_jabber.py
 
+default: all
+
+
+all:
+
 test:
 	python test.py
 
